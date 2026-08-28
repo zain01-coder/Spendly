@@ -204,6 +204,63 @@
 .hero-progress-bills { width: 38%; background: #7b6fe0; }
 
 /* ------------------------------------------------------------------ */
+/* How it works modal                                                  */
+/* ------------------------------------------------------------------ */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 15, 15, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    z-index: 1000;
+}
+
+.modal-overlay[hidden] { display: none; }
+
+.modal-box {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    background: var(--paper-card);
+    border-radius: var(--radius-lg);
+    padding: 0.75rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-close {
+    position: absolute;
+    top: -2.5rem;
+    right: 0;
+    background: transparent;
+    border: none;
+    color: var(--paper);
+    font-size: 1.75rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+}
+
+.modal-video-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #000;
+}
+
+.modal-video-wrap iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* ------------------------------------------------------------------ */
 /* Responsive                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -215,4 +272,5 @@
     .hero { padding: 3rem 1rem 2rem; }
     .hero-actions { flex-direction: column; width: 100%; align-items: center; }
     .hero-panel { padding: 2.75rem 1.25rem 1.5rem; }
+    .modal-close { top: -2.25rem; }
 }

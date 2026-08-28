@@ -24,7 +24,7 @@
         </p>
         <div class="hero-actions">
             <a href="{{ url_for('register') }}" class="hero-btn">Create free account</a>
-            <a href="#" class="hero-btn">See how it works</a>
+            <button type="button" class="hero-btn" id="how-it-works-btn">See how it works</button>
         </div>
 
         <div class="hero-panel">
@@ -102,4 +102,50 @@
     </div>
 </section>
 
+<div class="modal-overlay" id="how-it-works-modal" hidden>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-label="How Spendly works">
+        <button type="button" class="modal-close" id="how-it-works-close" aria-label="Close">&times;</button>
+        <div class="modal-video-wrap">
+            <iframe id="how-it-works-iframe" src="" title="How Spendly works" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var modal = document.getElementById('how-it-works-modal');
+    var iframe = document.getElementById('how-it-works-iframe');
+    var openBtn = document.getElementById('how-it-works-btn');
+    var closeBtn = document.getElementById('how-it-works-close');
+    var videoSrc = 'https://www.youtube.com/embed/jNQXAC9IVRw';
+
+    function openModal() {
+        iframe.src = videoSrc;
+        modal.hidden = false;
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        iframe.src = '';
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && !modal.hidden) {
+            closeModal();
+        }
+    });
+})();
+</script>
 {% endblock %}
