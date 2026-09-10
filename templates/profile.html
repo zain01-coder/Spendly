@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Profile — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="profile-section">
+
+    <div class="profile-card profile-header">
+        <div class="profile-avatar">{{ user.initials }}</div>
+        <div class="profile-header-info">
+            <h1 class="profile-name">{{ user.name }}</h1>
+            <p class="profile-email">{{ user.email }}</p>
+            <p class="profile-member-since">Member since {{ user.member_since }}</p>
+        </div>
+    </div>
+
+    <div class="profile-stats">
+        <div class="profile-stat-card">
+            <i data-lucide="wallet" class="profile-stat-icon"></i>
+            <span class="profile-stat-label">Total spent</span>
+            <span class="profile-stat-value">{{ stats.total_spent }}</span>
+        </div>
+        <div class="profile-stat-card">
+            <i data-lucide="receipt" class="profile-stat-icon"></i>
+            <span class="profile-stat-label">Transactions</span>
+            <span class="profile-stat-value">{{ stats.transaction_count }}</span>
+        </div>
+        <div class="profile-stat-card">
+            <i data-lucide="tag" class="profile-stat-icon"></i>
+            <span class="profile-stat-label">Top category</span>
+            <span class="profile-stat-value">{{ stats.top_category }}</span>
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <h2 class="profile-card-title">Recent transactions</h2>
+        <div class="profile-table-wrap">
+            <table class="profile-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th class="profile-table-amount">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td>{{ tx.date }}</td>
+                        <td>{{ tx.description }}</td>
+                        <td><span class="profile-badge profile-badge-{{ tx.tone }}">{{ tx.category }}</span></td>
+                        <td class="profile-table-amount">{{ tx.amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <h2 class="profile-card-title">Category breakdown</h2>
+        <div class="profile-breakdown">
+            {% for cat in categories %}
+            <div class="profile-breakdown-row">
+                <span class="profile-breakdown-label">{{ cat.name }}</span>
+                <div class="profile-breakdown-track">
+                    <div class="profile-breakdown-bar profile-breakdown-bar-{{ cat.tone }}" style="width: {{ cat.percent }}%;"></div>
+                </div>
+                <span class="profile-breakdown-amount">{{ cat.amount }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

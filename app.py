@@ -125,7 +125,41 @@ def logout():
 @app.route("/profile")
 @login_required
 def profile():
-    return "Profile page — coming in Step 4"
+    user = {
+        "name": "Demo User",
+        "email": "demo@spendly.com",
+        "initials": "DU",
+        "member_since": "March 2025",
+    }
+
+    stats = {
+        "total_spent": "₹313.50",
+        "transaction_count": 8,
+        "top_category": "Bills",
+    }
+
+    transactions = [
+        {"date": "Sep 21", "description": "Groceries", "category": "Food", "tone": "accent-2", "amount": "₹22.00"},
+        {"date": "Sep 18", "description": "Miscellaneous", "category": "Other", "tone": "neutral", "amount": "₹8.25"},
+        {"date": "Sep 14", "description": "New shoes", "category": "Shopping", "tone": "accent", "amount": "₹60.00"},
+        {"date": "Sep 10", "description": "Movie ticket", "category": "Entertainment", "tone": "neutral", "amount": "₹15.75"},
+        {"date": "Sep 05", "description": "Electricity bill", "category": "Bills", "tone": "accent-2", "amount": "₹120.00"},
+    ]
+
+    categories = [
+        {"name": "Bills", "amount": "₹120.00", "percent": 38, "tone": "accent-2"},
+        {"name": "Shopping", "amount": "₹60.00", "percent": 19, "tone": "accent"},
+        {"name": "Transport", "amount": "₹45.00", "percent": 14, "tone": "neutral"},
+        {"name": "Food", "amount": "₹34.50", "percent": 11, "tone": "accent-2"},
+    ]
+
+    return render_template(
+        "profile.html",
+        user=user,
+        stats=stats,
+        transactions=transactions,
+        categories=categories,
+    )
 
 
 @app.route("/expenses/add")
