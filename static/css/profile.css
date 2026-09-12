@@ -1,0 +1,241 @@
+/* ------------------------------------------------------------------ */
+/* Profile page                                                        */
+/* ------------------------------------------------------------------ */
+
+.profile-section {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.profile-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.75rem;
+}
+
+.profile-card-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Header                                                               */
+/* ------------------------------------------------------------------ */
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.profile-avatar {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-name {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    color: var(--ink);
+    margin-bottom: 0.2rem;
+}
+
+.profile-email {
+    font-size: 0.95rem;
+    color: var(--ink-muted);
+    margin-bottom: 0.3rem;
+}
+
+.profile-member-since {
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------------------ */
+/* Stats                                                                */
+/* ------------------------------------------------------------------ */
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.profile-stat-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.profile-stat-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+}
+
+.profile-stat-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.profile-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ */
+/* Transaction table                                                    */
+/* ------------------------------------------------------------------ */
+
+.profile-table-wrap {
+    overflow-x: auto;
+}
+
+.profile-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.profile-table th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-muted);
+    padding: 0 0.75rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-table td {
+    padding: 0.85rem 0.75rem;
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--ink-soft);
+}
+
+.profile-table tr:last-child td { border-bottom: none; }
+
+.profile-table tbody tr:hover { background: var(--paper-warm); }
+
+.profile-table-amount {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.profile-badge {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.25rem 0.7rem;
+    border-radius: 999px;
+}
+
+.profile-badge-accent {
+    background: var(--accent-light);
+    color: var(--accent);
+}
+
+.profile-badge-accent-2 {
+    background: var(--accent-2-light);
+    color: var(--accent-2);
+}
+
+.profile-badge-neutral {
+    background: var(--border-soft);
+    color: var(--ink-muted);
+}
+
+/* ------------------------------------------------------------------ */
+/* Category breakdown                                                   */
+/* ------------------------------------------------------------------ */
+
+.profile-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.profile-breakdown-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 80px;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profile-breakdown-label {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    font-weight: 500;
+}
+
+.profile-breakdown-track {
+    height: 10px;
+    background: var(--border-soft);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.profile-breakdown-bar {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.profile-breakdown-bar-accent { background: var(--accent); }
+.profile-breakdown-bar-accent-2 { background: var(--accent-2); }
+.profile-breakdown-bar-neutral { background: var(--ink-faint); }
+
+.profile-breakdown-amount {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                           */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 700px) {
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .profile-breakdown-row {
+        grid-template-columns: 70px 1fr 60px;
+        gap: 0.5rem;
+    }
+}
