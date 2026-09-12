@@ -38,6 +38,29 @@
     </div>
 
     <div class="profile-card">
+        <h2 class="profile-card-title">Filter by date</h2>
+        <form method="GET" action="{{ url_for('profile') }}" class="profile-filter-form">
+            <div class="form-group">
+                <label for="start_date">From</label>
+                <input type="date" id="start_date" name="start_date"
+                       class="form-input" value="{{ date_filter.start_date }}">
+            </div>
+            <div class="form-group">
+                <label for="end_date">To</label>
+                <input type="date" id="end_date" name="end_date"
+                       class="form-input" value="{{ date_filter.end_date }}">
+            </div>
+            <button type="submit" class="btn-submit">Apply</button>
+            {% if date_filter.active %}
+            <a href="{{ url_for('profile') }}" class="profile-filter-clear">Clear filter</a>
+            {% endif %}
+        </form>
+        {% if date_filter.error %}
+        <div class="auth-error">{{ date_filter.error }}</div>
+        {% endif %}
+    </div>
+
+    <div class="profile-card">
         <h2 class="profile-card-title">Recent transactions</h2>
         <div class="profile-table-wrap">
             <table class="profile-table">
