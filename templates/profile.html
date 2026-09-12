@@ -57,6 +57,10 @@
                         <td><span class="profile-badge profile-badge-{{ tx.tone }}">{{ tx.category }}</span></td>
                         <td class="profile-table-amount">{{ tx.amount }}</td>
                     </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4">No transactions yet</td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -74,6 +78,8 @@
                 </div>
                 <span class="profile-breakdown-amount">{{ cat.amount }}</span>
             </div>
+            {% else %}
+            <p>No expenses recorded yet</p>
             {% endfor %}
         </div>
     </div>

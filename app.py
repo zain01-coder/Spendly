@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime
 from functools import wraps
 
 from flask import Flask, redirect, render_template, request, session, url_for
@@ -8,6 +9,8 @@ from database.db import get_db, init_db, seed_db
 
 app = Flask(__name__)
 app.secret_key = "dev-secret-key-change-in-production"
+
+PROFILE_TONES = ["accent", "accent-2", "neutral"]
 
 
 def login_required(view):
@@ -122,36 +125,102 @@ def logout():
     return redirect(url_for("login"))
 
 
+def _get_recent_transactions(db, user_id):
+    """Return the 5 most recent expenses for user_id, newest first."""
+    rows = db.execute(
+        "SELECT date, description, category, amount FROM expenses "
+        "WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT 5",
+        (user_id,),
+    ).fetchall()
+
+    transactions = []
+    for idx, row in enumerate(rows):
+        transactions.append({
+            "date": datetime.strptime(row["date"], "%Y-%m-%d").strftime("%b %d"),
+            "description": row["description"],
+            "category": row["category"],
+            "amount": f"₹{row['amount']:.2f}",
+            "tone": PROFILE_TONES[idx % 3],
+        })
+    return transactions
+
+
+def _get_profile_user(db, user_id):
+    """Return user dict: name, email, initials, member_since."""
+    row = db.execute(
+        "SELECT name, email, created_at FROM users WHERE id = ?",
+        (user_id,),
+    ).fetchone()
+
+    words = row["name"].split()
+    initials = "".join(word[0].upper() for word in words[:2])
+
+    member_since = datetime.strptime(
+        row["created_at"][:10], "%Y-%m-%d"
+    ).strftime("%B %Y")
+
+    return {
+        "name": row["name"],
+        "email": row["email"],
+        "initials": initials,
+        "member_since": member_since,
+    }
+
+
+def _get_profile_stats(db, user_id):
+    """Return stats dict: total_spent, transaction_count, top_category."""
+    totals_row = db.execute(
+        "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS cnt "
+        "FROM expenses WHERE user_id = ?",
+        (user_id,),
+    ).fetchone()
+
+    top_row = db.execute(
+        "SELECT category, SUM(amount) AS cat_total FROM expenses "
+        "WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC LIMIT 1",
+        (user_id,),
+    ).fetchone()
+
+    return {
+        "total_spent": f"₹{totals_row['total']:.2f}",
+        "transaction_count": totals_row["cnt"],
+        "top_category": top_row["category"] if top_row else "—",
+    }
+
+
+def _get_category_breakdown(db, user_id):
+    """Return list of per-category spend dicts, ordered by amount desc."""
+    rows = db.execute(
+        "SELECT category, SUM(amount) AS total FROM expenses WHERE user_id = ? "
+        "GROUP BY category ORDER BY total DESC",
+        (user_id,),
+    ).fetchall()
+
+    grand_total = sum(row["total"] for row in rows)
+
+    breakdown = []
+    for idx, row in enumerate(rows):
+        percent = round(row["total"] / grand_total * 100) if grand_total else 0
+        breakdown.append(
+            {
+                "name": row["category"],
+                "amount": f"₹{row['total']:.2f}",
+                "percent": percent,
+                "tone": PROFILE_TONES[idx % 3],
+            }
+        )
+    return breakdown
+
+
 @app.route("/profile")
 @login_required
 def profile():
-    user = {
-        "name": "Demo User",
-        "email": "demo@spendly.com",
-        "initials": "DU",
-        "member_since": "March 2025",
-    }
-
-    stats = {
-        "total_spent": "₹313.50",
-        "transaction_count": 8,
-        "top_category": "Bills",
-    }
-
-    transactions = [
-        {"date": "Sep 21", "description": "Groceries", "category": "Food", "tone": "accent-2", "amount": "₹22.00"},
-        {"date": "Sep 18", "description": "Miscellaneous", "category": "Other", "tone": "neutral", "amount": "₹8.25"},
-        {"date": "Sep 14", "description": "New shoes", "category": "Shopping", "tone": "accent", "amount": "₹60.00"},
-        {"date": "Sep 10", "description": "Movie ticket", "category": "Entertainment", "tone": "neutral", "amount": "₹15.75"},
-        {"date": "Sep 05", "description": "Electricity bill", "category": "Bills", "tone": "accent-2", "amount": "₹120.00"},
-    ]
-
-    categories = [
-        {"name": "Bills", "amount": "₹120.00", "percent": 38, "tone": "accent-2"},
-        {"name": "Shopping", "amount": "₹60.00", "percent": 19, "tone": "accent"},
-        {"name": "Transport", "amount": "₹45.00", "percent": 14, "tone": "neutral"},
-        {"name": "Food", "amount": "₹34.50", "percent": 11, "tone": "accent-2"},
-    ]
+    db = get_db()
+    user = _get_profile_user(db, session["user_id"])
+    stats = _get_profile_stats(db, session["user_id"])
+    transactions = _get_recent_transactions(db, session["user_id"])
+    categories = _get_category_breakdown(db, session["user_id"])
+    db.close()
 
     return render_template(
         "profile.html",
