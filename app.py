@@ -125,13 +125,52 @@ def logout():
     return redirect(url_for("login"))
 
 
-def _get_recent_transactions(db, user_id):
+def _validate_date_filter(args):
+    """Parse start_date/end_date from query args.
+
+    Returns (start_date, end_date, error, start_raw, end_raw) — the raw
+    values are returned alongside so callers can repopulate the filter
+    form without re-reading request.args themselves.
+    """
+    start_raw = args.get("start_date", "").strip()
+    end_raw = args.get("end_date", "").strip()
+
+    if not start_raw and not end_raw:
+        return None, None, None, start_raw, end_raw
+    if not start_raw or not end_raw:
+        return None, None, "Enter both a start and end date to filter.", start_raw, end_raw
+
+    try:
+        start_date = datetime.strptime(start_raw, "%Y-%m-%d").strftime("%Y-%m-%d")
+        end_date = datetime.strptime(end_raw, "%Y-%m-%d").strftime("%Y-%m-%d")
+    except ValueError:
+        return None, None, "Enter valid dates.", start_raw, end_raw
+
+    if start_date > end_date:
+        return None, None, "Start date must be before end date.", start_raw, end_raw
+
+    return start_date, end_date, None, start_raw, end_raw
+
+
+def _add_date_range(query, params, start_date, end_date):
+    """Append a BETWEEN clause to query/params when both dates are given."""
+    if start_date and end_date:
+        query += " AND date BETWEEN ? AND ?"
+        params += [start_date, end_date]
+    return query, params
+
+
+def _get_recent_transactions(db, user_id, start_date=None, end_date=None):
     """Return the 5 most recent expenses for user_id, newest first."""
-    rows = db.execute(
+    query = (
         "SELECT date, description, category, amount FROM expenses "
-        "WHERE user_id = ? ORDER BY date DESC, id DESC LIMIT 5",
-        (user_id,),
-    ).fetchall()
+        "WHERE user_id = ?"
+    )
+    params = [user_id]
+    query, params = _add_date_range(query, params, start_date, end_date)
+    query += " ORDER BY date DESC, id DESC LIMIT 5"
+
+    rows = db.execute(query, params).fetchall()
 
     transactions = []
     for idx, row in enumerate(rows):
@@ -167,19 +206,23 @@ def _get_profile_user(db, user_id):
     }
 
 
-def _get_profile_stats(db, user_id):
+def _get_profile_stats(db, user_id, start_date=None, end_date=None):
     """Return stats dict: total_spent, transaction_count, top_category."""
-    totals_row = db.execute(
+    totals_query = (
         "SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS cnt "
-        "FROM expenses WHERE user_id = ?",
-        (user_id,),
-    ).fetchone()
+        "FROM expenses WHERE user_id = ?"
+    )
+    top_query = (
+        "SELECT category, SUM(amount) AS cat_total FROM expenses WHERE user_id = ?"
+    )
+    params = [user_id]
+    totals_query, params = _add_date_range(totals_query, params, start_date, end_date)
+    if start_date and end_date:
+        top_query += " AND date BETWEEN ? AND ?"
+    top_query += " GROUP BY category ORDER BY cat_total DESC LIMIT 1"
 
-    top_row = db.execute(
-        "SELECT category, SUM(amount) AS cat_total FROM expenses "
-        "WHERE user_id = ? GROUP BY category ORDER BY cat_total DESC LIMIT 1",
-        (user_id,),
-    ).fetchone()
+    totals_row = db.execute(totals_query, params).fetchone()
+    top_row = db.execute(top_query, params).fetchone()
 
     return {
         "total_spent": f"₹{totals_row['total']:.2f}",
@@ -188,13 +231,14 @@ def _get_profile_stats(db, user_id):
     }
 
 
-def _get_category_breakdown(db, user_id):
+def _get_category_breakdown(db, user_id, start_date=None, end_date=None):
     """Return list of per-category spend dicts, ordered by amount desc."""
-    rows = db.execute(
-        "SELECT category, SUM(amount) AS total FROM expenses WHERE user_id = ? "
-        "GROUP BY category ORDER BY total DESC",
-        (user_id,),
-    ).fetchall()
+    query = "SELECT category, SUM(amount) AS total FROM expenses WHERE user_id = ?"
+    params = [user_id]
+    query, params = _add_date_range(query, params, start_date, end_date)
+    query += " GROUP BY category ORDER BY total DESC"
+
+    rows = db.execute(query, params).fetchall()
 
     grand_total = sum(row["total"] for row in rows)
 
@@ -215,11 +259,17 @@ def _get_category_breakdown(db, user_id):
 @app.route("/profile")
 @login_required
 def profile():
+    start_date, end_date, filter_error, start_raw, end_raw = _validate_date_filter(
+        request.args
+    )
+
     db = get_db()
     user = _get_profile_user(db, session["user_id"])
-    stats = _get_profile_stats(db, session["user_id"])
-    transactions = _get_recent_transactions(db, session["user_id"])
-    categories = _get_category_breakdown(db, session["user_id"])
+    stats = _get_profile_stats(db, session["user_id"], start_date, end_date)
+    transactions = _get_recent_transactions(
+        db, session["user_id"], start_date, end_date
+    )
+    categories = _get_category_breakdown(db, session["user_id"], start_date, end_date)
     db.close()
 
     return render_template(
@@ -228,6 +278,12 @@ def profile():
         stats=stats,
         transactions=transactions,
         categories=categories,
+        date_filter={
+            "start_date": start_date or start_raw,
+            "end_date": end_date or end_raw,
+            "error": filter_error,
+            "active": bool(start_date and end_date),
+        },
     )
 
 

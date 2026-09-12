@@ -110,6 +110,32 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Date filter                                                          */
+/* ------------------------------------------------------------------ */
+
+.profile-filter-form {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.profile-filter-form .form-group {
+    margin-bottom: 0;
+}
+
+.profile-filter-clear {
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    padding-bottom: 0.6rem;
+}
+
+.profile-filter-clear:hover {
+    color: var(--accent);
+}
+
+/* ------------------------------------------------------------------ */
 /* Transaction table                                                    */
 /* ------------------------------------------------------------------ */
 
