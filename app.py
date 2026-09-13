@@ -1,3 +1,4 @@
+import math
 import sqlite3
 from datetime import datetime
 from functools import wraps
@@ -11,6 +12,10 @@ app = Flask(__name__)
 app.secret_key = "dev-secret-key-change-in-production"
 
 PROFILE_TONES = ["accent", "accent-2", "neutral"]
+EXPENSE_CATEGORIES = [
+    "Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other",
+]
+EXPENSE_DESCRIPTION_MAX_LENGTH = 255
 
 
 def login_required(view):
@@ -184,7 +189,7 @@ def _get_recent_transactions(db, user_id, start_date=None, end_date=None):
             "date": datetime.strptime(row["date"], "%Y-%m-%d").strftime("%b %d"),
             "description": row["description"],
             "category": row["category"],
-            "amount": f"₹{row['amount']:.2f}",
+            "amount": f"Rs. {row['amount']:.2f}",
             "tone": PROFILE_TONES[idx % 3],
         })
     return transactions
@@ -231,7 +236,7 @@ def _get_profile_stats(db, user_id, start_date=None, end_date=None):
     top_row = db.execute(top_query, params).fetchone()
 
     return {
-        "total_spent": f"₹{totals_row['total']:.2f}",
+        "total_spent": f"Rs. {totals_row['total']:.2f}",
         "transaction_count": totals_row["cnt"],
         "top_category": top_row["category"] if top_row else "—",
     }
@@ -254,7 +259,7 @@ def _get_category_breakdown(db, user_id, start_date=None, end_date=None):
         breakdown.append(
             {
                 "name": row["category"],
-                "amount": f"₹{row['total']:.2f}",
+                "amount": f"Rs. {row['total']:.2f}",
                 "percent": percent,
                 "tone": PROFILE_TONES[idx % 3],
             }
@@ -293,10 +298,87 @@ def profile():
     )
 
 
-@app.route("/expenses/add")
+def _validate_expense_form(form):
+    """Validate submitted amount/category/date/description.
+
+    Returns (amount, amount_raw, category, date, date_raw, description,
+    error). On success, `amount` and `date` hold the parsed values and
+    `error` is None. On failure, `amount`/`date` are None and the `_raw`
+    fields let the caller repopulate the form with what was submitted.
+    """
+    amount_raw = form.get("amount", "").strip()
+    category = form.get("category", "").strip()
+    date_raw = form.get("date", "").strip()
+    description = form.get("description", "").strip()
+
+    amount = None
+    date = None
+    error = None
+
+    try:
+        amount = float(amount_raw)
+        if not math.isfinite(amount) or amount <= 0:
+            amount = None
+            error = "Enter a valid amount greater than 0."
+    except ValueError:
+        error = "Enter a valid amount greater than 0."
+
+    if not error and category not in EXPENSE_CATEGORIES:
+        error = "Select a valid category."
+
+    if not error and len(description) > EXPENSE_DESCRIPTION_MAX_LENGTH:
+        error = f"Description must be {EXPENSE_DESCRIPTION_MAX_LENGTH} characters or fewer."
+
+    if not error:
+        try:
+            date = datetime.strptime(date_raw, "%Y-%m-%d").strftime("%Y-%m-%d")
+        except ValueError:
+            error = "Enter a valid date."
+
+    return amount, amount_raw, category, date, date_raw, description, error
+
+
+def _render_expense_form(error=None, amount="", category="", date="", description=""):
+    return render_template(
+        "expenses_add.html",
+        categories=EXPENSE_CATEGORIES,
+        error=error,
+        amount=amount,
+        category=category,
+        date=date,
+        description=description,
+    )
+
+
+@app.route("/expenses/add", methods=["GET", "POST"])
 @login_required
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if request.method == "POST":
+        amount, amount_raw, category, date, date_raw, description, error = (
+            _validate_expense_form(request.form)
+        )
+
+        if error:
+            return _render_expense_form(
+                error=error,
+                amount=amount_raw,
+                category=category,
+                date=date_raw,
+                description=description,
+            )
+
+        db = get_db()
+        db.execute(
+            "INSERT INTO expenses (user_id, amount, category, date, description) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (session["user_id"], amount, category, date, description or None),
+        )
+        db.commit()
+        db.close()
+
+        return redirect(url_for("profile"))
+
+    return _render_expense_form(date=datetime.now().strftime("%Y-%m-%d"))
 
 
 @app.route("/expenses/<int:id>/edit")
