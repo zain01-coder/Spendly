@@ -67,6 +67,11 @@
     color: var(--ink-faint);
 }
 
+.profile-add-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
 /* ------------------------------------------------------------------ */
 /* Stats                                                                */
 /* ------------------------------------------------------------------ */
@@ -258,6 +263,10 @@
     .profile-header {
         flex-direction: column;
         text-align: center;
+    }
+
+    .profile-add-btn {
+        margin-left: 0;
     }
 
     .profile-breakdown-row {
