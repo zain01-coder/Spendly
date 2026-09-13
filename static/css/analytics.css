@@ -1,0 +1,169 @@
+/* ------------------------------------------------------------------ */
+/* Analytics — Coming Soon                                             */
+/* ------------------------------------------------------------------ */
+
+:root {
+    --analytics-accent-dark: #0f2e1e;
+}
+
+.analytics-section {
+    min-height: calc(100vh - 60px - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--paper) 0%, var(--paper-warm) 100%);
+}
+
+.analytics-glow {
+    position: absolute;
+    width: 24rem;
+    height: 24rem;
+    background: var(--accent);
+    opacity: 0.05;
+    border-radius: 50%;
+    filter: blur(80px);
+}
+
+.analytics-glow-top { top: 0; left: 0; transform: translate(-50%, -50%); }
+.analytics-glow-bottom { bottom: 0; right: 0; transform: translate(50%, 50%); }
+
+.analytics-card {
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    padding: 3rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.analytics-corner {
+    position: absolute;
+    width: 5rem;
+    height: 5rem;
+    background: linear-gradient(135deg, var(--accent), transparent);
+    opacity: 0.1;
+}
+
+.analytics-corner-top { top: 0; right: 0; border-bottom-left-radius: 100%; }
+.analytics-corner-bottom {
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(315deg, var(--accent), transparent);
+    border-top-right-radius: 100%;
+}
+
+.analytics-icon-wrap {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.analytics-icon-glow {
+    position: absolute;
+    width: 6rem;
+    height: 6rem;
+    background: var(--accent);
+    opacity: 0.2;
+    border-radius: 50%;
+    filter: blur(20px);
+}
+
+.analytics-icon-box {
+    width: 6rem;
+    height: 6rem;
+    background: linear-gradient(135deg, var(--accent), var(--analytics-accent-dark));
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.analytics-icon-box i { width: 2.75rem; height: 2.75rem; color: var(--paper-card); }
+
+.analytics-badge {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    background: linear-gradient(90deg, var(--accent), #3d5a4e);
+    border-radius: 999px;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.analytics-badge span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--paper-card);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+.analytics-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    background: linear-gradient(90deg, var(--accent), var(--analytics-accent-dark));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+}
+
+.analytics-body {
+    color: var(--ink-muted);
+    line-height: 1.7;
+    max-width: 360px;
+    margin: 0 auto 2rem;
+}
+
+.analytics-progress { margin-top: 2rem; }
+
+.analytics-dots {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.analytics-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background: linear-gradient(90deg, var(--accent), #3d5a4e);
+    animation: analytics-pulse 1.4s ease-in-out infinite;
+}
+
+.analytics-dot:nth-child(2) { animation-delay: 0.2s; }
+.analytics-dot:nth-child(3) { animation-delay: 0.4s; }
+
+.analytics-caption {
+    font-size: 0.75rem;
+    color: var(--ink-faint);
+    margin-top: 1rem;
+    letter-spacing: 0.02em;
+}
+
+.analytics-bottom-line {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8rem;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.3;
+    border-radius: 999px;
+}
+
+@keyframes analytics-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}

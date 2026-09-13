@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analytics.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="analytics-section">
+    <div class="analytics-glow analytics-glow-top"></div>
+    <div class="analytics-glow analytics-glow-bottom"></div>
+
+    <div class="analytics-card">
+        <div class="analytics-corner analytics-corner-top"></div>
+        <div class="analytics-corner analytics-corner-bottom"></div>
+
+        <div class="analytics-icon-wrap">
+            <div class="analytics-icon-glow"></div>
+            <div class="analytics-icon-box">
+                <i data-lucide="clock"></i>
+            </div>
+        </div>
+
+        <div class="analytics-badge">
+            <span>Coming Soon</span>
+        </div>
+
+        <h1 class="analytics-title">Advanced Analytics</h1>
+
+        <p class="analytics-body">
+            We're working on powerful insights and visualizations to help you
+            understand your spending patterns better.
+        </p>
+
+        <div class="analytics-progress">
+            <div class="analytics-dots">
+                <div class="analytics-dot"></div>
+                <div class="analytics-dot"></div>
+                <div class="analytics-dot"></div>
+            </div>
+            <p class="analytics-caption">We're crafting something special</p>
+        </div>
+
+        <div class="analytics-bottom-line"></div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}
