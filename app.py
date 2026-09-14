@@ -3,7 +3,7 @@ import sqlite3
 from datetime import datetime
 from functools import wraps
 
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, abort, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from database.db import get_db, init_db, seed_db
@@ -13,7 +13,13 @@ app.secret_key = "dev-secret-key-change-in-production"
 
 PROFILE_TONES = ["accent", "accent-2", "neutral"]
 EXPENSE_CATEGORIES = [
-    "Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other",
+    "Food",
+    "Transport",
+    "Bills",
+    "Health",
+    "Entertainment",
+    "Shopping",
+    "Other",
 ]
 EXPENSE_DESCRIPTION_MAX_LENGTH = 255
 
@@ -31,6 +37,7 @@ def login_required(view):
 # ------------------------------------------------------------------ #
 # Routes                                                              #
 # ------------------------------------------------------------------ #
+
 
 @app.route("/")
 def landing():
@@ -88,9 +95,7 @@ def login():
         password = request.form.get("password", "")
 
         if not email or not password:
-            return render_template(
-                "login.html", error="Invalid email or password."
-            )
+            return render_template("login.html", error="Invalid email or password.")
 
         db = get_db()
         user = db.execute(
@@ -99,9 +104,7 @@ def login():
         db.close()
 
         if user is None or not check_password_hash(user["password_hash"], password):
-            return render_template(
-                "login.html", error="Invalid email or password."
-            )
+            return render_template("login.html", error="Invalid email or password.")
 
         session["user_id"] = user["id"]
         return redirect(url_for("profile"))
@@ -129,6 +132,7 @@ def privacy():
 # Placeholder routes — students will implement these                  #
 # ------------------------------------------------------------------ #
 
+
 @app.route("/logout")
 @login_required
 def logout():
@@ -149,7 +153,13 @@ def _validate_date_filter(args):
     if not start_raw and not end_raw:
         return None, None, None, start_raw, end_raw
     if not start_raw or not end_raw:
-        return None, None, "Enter both a start and end date to filter.", start_raw, end_raw
+        return (
+            None,
+            None,
+            "Enter both a start and end date to filter.",
+            start_raw,
+            end_raw,
+        )
 
     try:
         start_date = datetime.strptime(start_raw, "%Y-%m-%d").strftime("%Y-%m-%d")
@@ -174,7 +184,7 @@ def _add_date_range(query, params, start_date, end_date):
 def _get_recent_transactions(db, user_id, start_date=None, end_date=None):
     """Return the 5 most recent expenses for user_id, newest first."""
     query = (
-        "SELECT date, description, category, amount FROM expenses "
+        "SELECT id, date, description, category, amount FROM expenses "
         "WHERE user_id = ?"
     )
     params = [user_id]
@@ -185,13 +195,16 @@ def _get_recent_transactions(db, user_id, start_date=None, end_date=None):
 
     transactions = []
     for idx, row in enumerate(rows):
-        transactions.append({
-            "date": datetime.strptime(row["date"], "%Y-%m-%d").strftime("%b %d"),
-            "description": row["description"],
-            "category": row["category"],
-            "amount": f"Rs. {row['amount']:.2f}",
-            "tone": PROFILE_TONES[idx % 3],
-        })
+        transactions.append(
+            {
+                "id": row["id"],
+                "date": datetime.strptime(row["date"], "%Y-%m-%d").strftime("%b %d"),
+                "description": row["description"],
+                "category": row["category"],
+                "amount": f"Rs. {row['amount']:.2f}",
+                "tone": PROFILE_TONES[idx % 3],
+            }
+        )
     return transactions
 
 
@@ -205,9 +218,9 @@ def _get_profile_user(db, user_id):
     words = row["name"].split()
     initials = "".join(word[0].upper() for word in words[:2])
 
-    member_since = datetime.strptime(
-        row["created_at"][:10], "%Y-%m-%d"
-    ).strftime("%B %Y")
+    member_since = datetime.strptime(row["created_at"][:10], "%Y-%m-%d").strftime(
+        "%B %Y"
+    )
 
     return {
         "name": row["name"],
@@ -327,7 +340,9 @@ def _validate_expense_form(form):
         error = "Select a valid category."
 
     if not error and len(description) > EXPENSE_DESCRIPTION_MAX_LENGTH:
-        error = f"Description must be {EXPENSE_DESCRIPTION_MAX_LENGTH} characters or fewer."
+        error = (
+            f"Description must be {EXPENSE_DESCRIPTION_MAX_LENGTH} characters or fewer."
+        )
 
     if not error:
         try:
@@ -381,10 +396,73 @@ def add_expense():
     return _render_expense_form(date=datetime.now().strftime("%Y-%m-%d"))
 
 
-@app.route("/expenses/<int:id>/edit")
+def _get_owned_expense(db, expense_id, user_id):
+    """Return the expenses row with expense_id owned by user_id, or None."""
+    return db.execute(
+        "SELECT id, amount, category, date, description FROM expenses "
+        "WHERE id = ? AND user_id = ?",
+        (expense_id, user_id),
+    ).fetchone()
+
+
+def _render_edit_expense_form(
+    expense_id, error=None, amount="", category="", date="", description=""
+):
+    return render_template(
+        "expenses_edit.html",
+        categories=EXPENSE_CATEGORIES,
+        expense_id=expense_id,
+        error=error,
+        amount=amount,
+        category=category,
+        date=date,
+        description=description,
+    )
+
+
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    db = get_db()
+    expense = _get_owned_expense(db, id, session["user_id"])
+    if expense is None:
+        db.close()
+        abort(404)
+
+    if request.method == "POST":
+        amount, amount_raw, category, date, date_raw, description, error = (
+            _validate_expense_form(request.form)
+        )
+
+        if error:
+            db.close()
+            return _render_edit_expense_form(
+                id,
+                error=error,
+                amount=amount_raw,
+                category=category,
+                date=date_raw,
+                description=description,
+            )
+
+        db.execute(
+            "UPDATE expenses SET amount = ?, category = ?, date = ?, description = ? "
+            "WHERE id = ? AND user_id = ?",
+            (amount, category, date, description or None, id, session["user_id"]),
+        )
+        db.commit()
+        db.close()
+
+        return redirect(url_for("profile"))
+
+    db.close()
+    return _render_edit_expense_form(
+        id,
+        amount=expense["amount"],
+        category=expense["category"],
+        date=expense["date"],
+        description=expense["description"] or "",
+    )
 
 
 @app.route("/expenses/<int:id>/delete")
