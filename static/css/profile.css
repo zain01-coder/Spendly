@@ -187,6 +187,16 @@
     white-space: nowrap;
 }
 
+.profile-table-action-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.profile-table-delete-form {
+    display: inline;
+}
+
 .profile-table-edit {
     color: var(--accent);
     font-size: 0.85rem;
@@ -195,6 +205,22 @@
 }
 
 .profile-table-edit:hover {
+    color: var(--ink);
+}
+
+.profile-table-delete {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    color: var(--danger);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.profile-table-delete:hover {
     color: var(--ink);
 }
 

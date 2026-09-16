@@ -82,7 +82,12 @@
                         <td><span class="profile-badge profile-badge-{{ tx.tone }}">{{ tx.category }}</span></td>
                         <td class="profile-table-amount">{{ tx.amount }}</td>
                         <td class="profile-table-actions">
-                            <a href="{{ url_for('edit_expense', id=tx.id) }}" class="profile-table-edit">Edit</a>
+                            <div class="profile-table-action-group">
+                                <a href="{{ url_for('edit_expense', id=tx.id) }}" class="profile-table-edit">Edit</a>
+                                <form method="POST" action="{{ url_for('delete_expense', id=tx.id) }}" class="profile-table-delete-form">
+                                    <button type="submit" class="profile-table-delete">Delete</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% else %}
